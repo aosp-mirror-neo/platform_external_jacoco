@@ -97,7 +97,7 @@ java_library {
                     "apps_only",
                 ],
             },
-        }
+        },
     },
 
     // In order to include Jacoco in core libraries, we cannot depend on
