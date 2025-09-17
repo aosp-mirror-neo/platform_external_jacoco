@@ -109,9 +109,9 @@ java_library {
     // TODO(b/69671801): there's no bytecode on the device, so these shouldn't
     // be necessary.
     static_libs: [
-        "asm-9.6",
-        "asm-commons-9.6",
-        "asm-tree-9.6",
+        "ow2-asm",
+        "ow2-asm-commons",
+        "ow2-asm-tree",
     ],
     errorprone: {
         javacflags: [
@@ -190,9 +190,9 @@ java_library_host {
     ],
 
     static_libs: [
-        "asm-9.6",
-        "asm-commons-9.6",
-        "asm-tree-9.6",
+        "ow2-asm",
+        "ow2-asm-commons",
+        "ow2-asm-tree",
         "args4j-2.0.28",
     ],
 
