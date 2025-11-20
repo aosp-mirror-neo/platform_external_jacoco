@@ -10,15 +10,15 @@ jobs:
         JDK_VERSION: 7
       JDK 8:
         JDK_VERSION: 8
-      JDK 8 with ECJ:
-        JDK_VERSION: 8
-        ECJ: true
       JDK 9:
         JDK_VERSION: 9
       JDK 10:
         JDK_VERSION: 10
       JDK 11:
         JDK_VERSION: 11
+      JDK 11 with ECJ:
+        JDK_VERSION: 11
+        ECJ: true
       JDK 12:
         JDK_VERSION: 12
       JDK 13:
@@ -31,8 +31,35 @@ jobs:
         JDK_VERSION: 16
       JDK 17:
         JDK_VERSION: 17
+      JDK 17 with ECJ:
+        JDK_VERSION: 17
+        ECJ: true
+      JDK 18:
+        JDK_VERSION: 18
+      JDK 19:
+        JDK_VERSION: 19
+      JDK 20:
+        JDK_VERSION: 20
+      JDK 21:
+        JDK_VERSION: 21
+      JDK 21 with ECJ:
+        JDK_VERSION: 21
+        ECJ: true
+      JDK 22:
+        JDK_VERSION: 22
+      JDK 23:
+        JDK_VERSION: 23
+      JDK 23 with ECJ:
+        JDK_VERSION: 23
+        ECJ: true
+      JDK 24:
+        JDK_VERSION: 24
+      JDK 25:
+        JDK_VERSION: 25
+      JDK 26:
+        JDK_VERSION: 26
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-24.04'
   steps:
   - bash: |
       set -e
@@ -58,25 +85,23 @@ jobs:
       " > toolchains.xml
     displayName: Setup JDK
   - bash: |
-      if [[ "$JDK_VERSION" -ge "8" ]]; then
+      if [[ "$JDK_VERSION" -ge "17" ]]; then
         export JAVA_HOME=$PWD/.jdk
+      else
+        export JAVA_HOME=$JAVA_HOME_17_X64
       fi
       if [[ "$BUILD_SOURCEBRANCH" == "refs/heads/master" && "$JDK_VERSION" == "5" ]]; then
-        mvn -V -B -e -f org.jacoco.build \
-          verify -Djdk.version=$JDK_VERSION \
+        ./mvnw -V -B -e --no-transfer-progress -f org.jacoco.build \
+          verify -Djdk.version=$JDK_VERSION -Dbytecode.version=$JDK_VERSION \
           deploy:deploy -DdeployAtEnd \
           --toolchains=toolchains.xml --settings=.azure-pipelines/maven-settings.xml
-      elif [[ "$JDK_VERSION" == "5" ]]; then
-        mvn -V -B -e \
-          verify -Djdk.version=$JDK_VERSION \
-          --toolchains=toolchains.xml
       elif [[ "$BUILD_SOURCEBRANCH" == "refs/heads/master" && "$JDK_VERSION" == "11" ]]; then
-        mvn -V -B -e -f org.jacoco.build \
+        ./mvnw -V -B -e --no-transfer-progress -f org.jacoco.build \
           verify -Djdk.version=$JDK_VERSION -Dbytecode.version=$JDK_VERSION \
-          sonar:sonar \
+          sonar:sonar -Dsonar.scanner.skipJreProvisioning \
           --toolchains=toolchains.xml --settings=.azure-pipelines/maven-settings.xml
       else
-        mvn -V -B -e \
+        ./mvnw -V -B -e --no-transfer-progress \
           verify -Djdk.version=$JDK_VERSION -Dbytecode.version=$JDK_VERSION -Decj=${ECJ:-} \
           --toolchains=toolchains.xml
       fi

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2021 Mountainminds GmbH & Co. KG and Contributors
+ * Copyright (c) 2009, 2025 Mountainminds GmbH & Co. KG and Contributors
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
@@ -99,7 +99,7 @@ public class StringSwitchJavacFilterTest extends FilterTestBase {
 
 		filter.filter(m, context, output);
 
-		assertIgnored(new Range(expectedFromInclusive, expectedToInclusive));
+		assertIgnored(m, new Range(expectedFromInclusive, expectedToInclusive));
 	}
 
 	@Test
@@ -112,7 +112,58 @@ public class StringSwitchJavacFilterTest extends FilterTestBase {
 
 		filter.filter(m, context, output);
 
-		assertIgnored(new Range(expectedFromInclusive, expectedToInclusive));
+		assertIgnored(m, new Range(expectedFromInclusive, expectedToInclusive));
+	}
+
+	/**
+	 * <code><pre>
+	 * int c = -1;
+	 * switch (s.hashCode()) {
+	 * case 0:
+	 *   if (s.equals(""))
+	 *     c = 0;
+	 *   return;
+	 * default:
+	 * }
+	 * switch (c)
+	 *   // ...
+	 * </pre></code>
+	 */
+	@Test
+	public void should_not_filter_when_no_expected_goto() {
+		m.visitInsn(Opcodes.ICONST_M1);
+		m.visitVarInsn(Opcodes.ISTORE, 2);
+
+		m.visitVarInsn(Opcodes.ALOAD, 1);
+		m.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "hashCode",
+				"()I", false);
+
+		final Label secondSwitch = new Label();
+		final Label h1 = new Label();
+		m.visitTableSwitchInsn(0, 0, secondSwitch, h1);
+
+		m.visitLabel(h1);
+		m.visitVarInsn(Opcodes.ALOAD, 1);
+		m.visitLdcInsn("");
+		m.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals",
+				"(Ljava/lang/Object;)Z", false);
+		m.visitJumpInsn(Opcodes.IFEQ, secondSwitch);
+		m.visitInsn(Opcodes.ICONST_0);
+		m.visitVarInsn(Opcodes.ISTORE, 2);
+
+		// Something different from the expected by filter
+		// secondSwitch label or GOTO:
+		m.visitInsn(Opcodes.RETURN);
+
+		m.visitLabel(secondSwitch);
+		m.visitVarInsn(Opcodes.ILOAD, 2);
+		final Label defaultCase = new Label();
+		m.visitLookupSwitchInsn(defaultCase, new int[] {}, new Label[] {});
+		m.visitLabel(defaultCase);
+
+		filter.filter(m, context, output);
+
+		assertIgnored(m);
 	}
 
 	@Test
@@ -159,7 +210,7 @@ public class StringSwitchJavacFilterTest extends FilterTestBase {
 
 		filter.filter(m, context, output);
 
-		assertIgnored();
+		assertIgnored(m);
 	}
 
 }

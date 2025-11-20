@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2021 Mountainminds GmbH & Co. KG and Contributors
+ * Copyright (c) 2009, 2025 Mountainminds GmbH & Co. KG and Contributors
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
@@ -53,7 +53,7 @@ class TcpConnection implements IRemoteCommandVisitor {
 	 * Processes all requests for this session until the socket is closed.
 	 *
 	 * @throws IOException
-	 *             in case of problems whith the connection
+	 *             in case of problems with the connection
 	 */
 	public void run() throws IOException {
 		try {

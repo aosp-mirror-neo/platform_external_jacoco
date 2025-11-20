@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2021 Mountainminds GmbH & Co. KG and Contributors
+ * Copyright (c) 2009, 2025 Mountainminds GmbH & Co. KG and Contributors
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
@@ -21,8 +21,10 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.jacoco.core.data.IExecutionData;
+import org.jacoco.core.JaCoCo;
+import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.jacoco.core.data.IExecutionData;
 import org.jacoco.core.internal.ContentTypeDetector;
 import org.jacoco.core.internal.InputStreams;
 import org.jacoco.core.internal.Pack200Streams;
@@ -162,7 +164,8 @@ public class Analyzer {
 	private IOException analyzerError(final String location,
 			final Exception cause) {
 		final IOException ex = new IOException(
-				String.format("Error while analyzing %s.", location));
+				String.format("Error while analyzing %s with JaCoCo %s/%s.",
+						location, JaCoCo.VERSION, JaCoCo.COMMITID_SHORT));
 		ex.initCause(cause);
 		return ex;
 	}
@@ -274,6 +277,11 @@ public class Analyzer {
 		try {
 			return input.getNextEntry();
 		} catch (final IOException e) {
+			throw analyzerError(location, e);
+		} catch (final IllegalArgumentException e) {
+			// might be thrown in JDK versions below 23 - see
+			// https://bugs.openjdk.org/browse/JDK-8321156
+			// https://github.com/openjdk/jdk/commit/20c71ceacdcb791f5b70cda456bdc47bdd9acf6c
 			throw analyzerError(location, e);
 		}
 	}

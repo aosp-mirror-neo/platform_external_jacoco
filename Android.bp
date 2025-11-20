@@ -86,6 +86,7 @@ java_library {
             exclude_srcs: [
                 "org.jacoco.core/src/org/jacoco/core/runtime/ModifiedSystemClassRuntime.java",
                 "org.jacoco.agent.rt/src/org/jacoco/agent/rt/internal/PreMain.java",
+                "org.jacoco.agent.rt/src/org/jacoco/agent/rt/internal/AgentModule.java",
                 "org.jacoco.agent.rt/src/org/jacoco/agent/rt/internal/CoverageTransformer.java",
                 "org.jacoco.agent.rt/src/org/jacoco/agent/rt/internal/JmxRegistration.java",
             ],

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   Copyright (c) 2009, 2021 Mountainminds GmbH & Co. KG and Contributors
+   Copyright (c) 2009, 2025 Mountainminds GmbH & Co. KG and Contributors
    This program and the accompanying materials are made available under
    the terms of the Eclipse Public License 2.0 which is available at
    http://www.eclipse.org/legal/epl-2.0
@@ -15,7 +15,7 @@
 
   <groupId>org.jacoco</groupId>
   <artifactId>org.jacoco.build</artifactId>
-  <version>0.8.7</version>
+  <version>0.8.15-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>JaCoCo</name>
@@ -27,7 +27,7 @@
   </organization>
   <licenses>
     <license>
-      <name>Eclipse Public License 2.0</name>
+      <name>EPL-2.0</name>
       <url>https://www.eclipse.org/legal/epl-2.0/</url>
       <distribution>repo</distribution>
     </license>
@@ -114,7 +114,7 @@
     <repository>
       <id>sonatype-nexus-staging</id>
       <name>Nexus Release Repository</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <url>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</url>
     </repository>
     <snapshotRepository>
       <id>sonatype-nexus-snapshots</id>
@@ -125,11 +125,11 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <sonatypeOssDistMgmtSnapshotsUrl>https://oss.sonatype.org/content/repositories/snapshots/</sonatypeOssDistMgmtSnapshotsUrl>
+    <sonatypeOssDistMgmtSnapshotsUrl>https://central.sonatype.com/repository/maven-snapshots/</sonatypeOssDistMgmtSnapshotsUrl>
 
     <maven.build.timestamp.format>yyyyMMddhhmm</maven.build.timestamp.format>
     <jacoco.home.url>http://www.jacoco.org/jacoco</jacoco.home.url>
-    <copyright.years>${project.inceptionYear}, 2021</copyright.years>
+    <copyright.years>${project.inceptionYear}, 2025</copyright.years>
 
     <bytecode.version>1.5</bytecode.version>
     <maven.compiler.source>${bytecode.version}</maven.compiler.source>
@@ -139,10 +139,10 @@
     <argLine>${jvm.args}</argLine>
 
     <!-- Dependencies versions -->
-    <asm.version>9.1</asm.version>
-    <ant.version>1.9.15</ant.version>
+    <asm.version>9.9</asm.version>
+    <ant.version>1.9.16</ant.version>
     <args4j.version>2.0.28</args4j.version>
-    <junit.version>4.13.1</junit.version>
+    <junit.version>4.13.2</junit.version>
     <googlecodeprettify.version>20100721</googlecodeprettify.version>
 
     <!-- ================== -->
@@ -209,28 +209,10 @@
       <!-- Third-party dependencies -->
       <dependency>
         <groupId>org.ow2.asm</groupId>
-        <artifactId>asm</artifactId>
+        <artifactId>asm-bom</artifactId>
         <version>${asm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.ow2.asm</groupId>
-        <artifactId>asm-commons</artifactId>
-        <version>${asm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.ow2.asm</groupId>
-        <artifactId>asm-tree</artifactId>
-        <version>${asm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.ow2.asm</groupId>
-        <artifactId>asm-analysis</artifactId>
-        <version>${asm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.ow2.asm</groupId>
-        <artifactId>asm-util</artifactId>
-        <version>${asm.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.ant</groupId>
@@ -255,7 +237,7 @@
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant-antunit</artifactId>
-        <version>1.4</version>
+        <version>1.4.1</version>
       </dependency>
       <dependency>
         <groupId>args4j</groupId>
@@ -315,66 +297,63 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
-          <version>1.6</version>
+          <version>3.2.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.2.1</version>
+          <version>3.7.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-clean-plugin</artifactId>
-          <version>2.4.1</version>
+          <version>3.5.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.7.0</version>
+          <!-- latest version which works with JDK 5 -->
+          <version>3.12.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>2.2</version>
+          <version>3.9.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.8.2</version>
+          <version>3.1.4</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>3.0.0-M2</version>
+          <version>3.6.2</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
-          <version>2.3.1</version>
+          <version>3.1.4</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-invoker-plugin</artifactId>
-          <version>2.0.0</version>
+          <version>3.9.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-gpg-plugin</artifactId>
-          <version>1.3</version>
+          <version>3.2.8</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>2.3.1</version>
+          <version>3.5.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <!--
-          Do not upgrade to 3.1.0 because it has troubles with "Automatic-Module-Name"
-          See https://issues.apache.org/jira/browse/MJAVADOC-588
-          -->
-          <version>3.0.1</version>
+          <version>3.11.2</version>
           <configuration>
             <quiet>true</quiet>
             <detectOfflineLinks>false</detectOfflineLinks>
@@ -383,20 +362,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-plugin-plugin</artifactId>
-          <version>3.6.0</version>
-          <dependencies>
-            <dependency>
-              <!-- Workaround to be able to compile into Java 13 bytecode -->
-              <groupId>org.ow2.asm</groupId>
-              <artifactId>asm</artifactId>
-              <version>7.1</version>
-            </dependency>
-          </dependencies>
+          <version>3.6.4</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
-          <version>2.1</version>
+          <version>3.2.0</version>
           <configuration>
             <autoVersionSubmodules>true</autoVersionSubmodules>
             <mavenExecutorId>forked-path</mavenExecutorId>
@@ -411,67 +382,59 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>2.5</version>
+          <version>3.3.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.2.1</version>
-          <dependencies>
-            <dependency>
-              <!-- Workaround to be able to compile into Java 13 bytecode -->
-              <groupId>org.ow2.asm</groupId>
-              <artifactId>asm</artifactId>
-              <version>7.1</version>
-            </dependency>
-          </dependencies>
+          <version>3.6.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>2.1.2</version>
+          <version>3.3.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.9</version>
+          <!--  latest version which runs with Java 5 -->
+          <version>2.19.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-          <version>3.3</version>
+          <version>3.12.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-toolchains-plugin</artifactId>
-          <version>1.0</version>
+          <version>3.2.0</version>
         </plugin>
         <!-- Mojo plugins -->
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>animal-sniffer-maven-plugin</artifactId>
-          <version>1.6</version>
+          <version>1.26</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>build-helper-maven-plugin</artifactId>
-          <version>1.5</version>
+          <version>3.6.1</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>buildnumber-maven-plugin</artifactId>
-          <version>1.2</version>
+          <version>3.2.1</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>xml-maven-plugin</artifactId>
-          <version>1.0</version>
+          <version>1.2.0</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
-          <!--  latest version which runs with Java 5 -->
-          <version>1.5.0</version>
+          <version>3.6.2</version>
         </plugin>
         <!-- Third-party plugins -->
         <plugin>
@@ -482,12 +445,17 @@
         <plugin>
           <groupId>org.apache.felix</groupId>
           <artifactId>maven-bundle-plugin</artifactId>
-          <version>3.5.1</version>
+          <version>6.0.0</version>
         </plugin>
         <plugin>
           <groupId>com.diffplug.spotless</groupId>
           <artifactId>spotless-maven-plugin</artifactId>
-          <version>1.24.3</version>
+          <version>3.0.0</version>
+       </plugin>
+       <plugin>
+         <groupId>org.sonarsource.scanner.maven</groupId>
+         <artifactId>sonar-maven-plugin</artifactId>
+         <version>5.3.0.6276</version>
        </plugin>
       </plugins>
     </pluginManagement>
@@ -506,6 +474,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
           <filters>
             <!-- Don't include signatures -->
             <filter>
@@ -548,10 +517,10 @@
             <configuration>
               <rules>
                 <requireJavaVersion>
-                  <version>1.8</version>
+                  <version>17</version>
                 </requireJavaVersion>
                 <requireMavenVersion>
-                  <version>3.3.9</version>
+                  <version>3.9.11</version>
                 </requireMavenVersion>
                 <requireNoRepositories>
                   <message>The rules for repo1.maven.org are that pom.xml files should not include repository definitions.</message>
@@ -578,9 +547,13 @@
               <include>src/**/*.java</include>
             </includes>
             <eclipse>
-              <version>4.12.0</version>
+              <version>4.30</version>
               <file>../org.jacoco.core/.settings/org.eclipse.jdt.core.prefs</file>
             </eclipse>
+            <importOrder>
+              <order>java,javax,org,com,</order>
+              <semanticSort>true</semanticSort>
+            </importOrder>
             <trimTrailingWhitespace/>
             <endWithNewline/>
           </java>
@@ -632,7 +605,7 @@
                   <include name="**/*.scala"/>
                   <not>
                     <and>
-                      <contains text="Copyright (c) 2009, 2021 Mountainminds GmbH &amp; Co. KG and Contributors"/>
+                      <contains text="Copyright (c) ${copyright.years} Mountainminds GmbH &amp; Co. KG and Contributors"/>
                       <contains text="This program and the accompanying materials are made available under"/>
                       <contains text="the terms of the Eclipse Public License 2.0 which is available at"/>
                       <contains text="http://www.eclipse.org/legal/epl-2.0"/>
@@ -684,6 +657,7 @@
           <doUpdate>false</doUpdate>
           <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
           <revisionOnScmFailure>0000000</revisionOnScmFailure>
+          <buildNumberPropertyName>build.commitId</buildNumberPropertyName>
         </configuration>
       </plugin>
 
@@ -715,8 +689,8 @@
                 buildDate = qualifier.substring(0, 4) + "/" + qualifier.substring(4, 6) + "/" + qualifier.substring(6, 8);
                 project.getProperties().setProperty("build.date", buildDate);
 
-                buildNumber = project.getProperties().get("buildNumber");
-                pkgName = buildNumber.substring(buildNumber.length() - 7, buildNumber.length());
+                commitId = project.getProperties().get("build.commitId");
+                pkgName = commitId.substring(commitId.length() - 7, commitId.length());
                 project.getProperties().setProperty("jacoco.runtime.package.name", "org.jacoco.agent.rt.internal_" + pkgName);
 
                 void loadLicense(String libraryId) {
@@ -753,7 +727,7 @@
               org.objectweb.asm.*;version="${range;[===,=+);${asm.version}}"
             </Import-Package>
             <Bundle-RequiredExecutionEnvironment>J2SE-1.5</Bundle-RequiredExecutionEnvironment>
-            <Eclipse-SourceReferences>scm:git:git://github.com/jacoco/jacoco.git;path="${project.artifactId}";commitId=${buildNumber}</Eclipse-SourceReferences>
+            <Eclipse-SourceReferences>scm:git:git://github.com/jacoco/jacoco.git;path="${project.artifactId}";commitId=${build.commitId}</Eclipse-SourceReferences>
           </instructions>
         </configuration>
       </plugin>
@@ -775,10 +749,58 @@
     <profile>
       <id>maven-jdk12</id>
       <activation>
-        <jdk>[12,)</jdk>
+        <jdk>[12,20)</jdk>
       </activation>
       <properties>
         <bytecode.version>7</bytecode.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- https://bugs.openjdk.org/browse/JDK-8173605 -->
+      <id>maven-jdk20</id>
+      <activation>
+        <jdk>[20,)</jdk>
+      </activation>
+      <properties>
+        <bytecode.version>8</bytecode.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>maven-jdk23</id>
+      <activation>
+        <jdk>[23,)</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <additionalOptions>
+                <!-- https://bugs.openjdk.org/browse/JDK-8324774 -->
+                <option>--no-fonts</option>
+              </additionalOptions>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!--
+    Following profile is automatically activated in IntelliJ IDEA
+    and used to set the correct Java language level in it
+    -->
+    <profile>
+      <id>intellij</id>
+      <activation>
+        <property>
+          <name>idea.maven.embedder.version</name>
+        </property>
+      </activation>
+      <properties>
+        <bytecode.version>5</bytecode.version>
       </properties>
     </profile>
 
@@ -817,65 +839,139 @@
     </profile>
 
     <!--
-    Following profiles enable compilation into bytecode version 13
-    when requested "bytecode.version" greater than 13,
-    because this is maximum that can be processed by
-    maven-shade-plugin and maven-plugin-plugin.
+    Following profiles enable compilation into bytecode version 17
+    when requested "bytecode.version" greater than 17. This is needed even though
+    maven-shade-plugin 3.6.0 can process bytecode up to version 22
+    and maven-plugin-plugin 3.6.4 can process bytecode up to version 18,
+    because we use JDK 17 to launch Maven while compiling by more recent JDKs
+    and unfortunately maven-plugin-plugin loads project classes using the same JDK that is used for Maven
+    (see https://github.com/apache/maven-plugin-tools/blob/maven-plugin-tools-3.6.4/maven-plugin-tools-generators/src/main/java/org/apache/maven/tools/plugin/generator/GeneratorUtils.java#L661-L720)
+    and maven-invoker-plugin for forked Maven invocations uses the same JDK that is used for Maven.
     This is overridden for tests.
     -->
     <profile>
-      <id>java14-bytecode</id>
+      <id>java18-bytecode</id>
       <activation>
         <property>
           <name>bytecode.version</name>
-          <value>14</value>
+          <value>18</value>
         </property>
       </activation>
       <properties>
-        <maven.compiler.source>13</maven.compiler.source>
-        <maven.compiler.target>13</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
       </properties>
     </profile>
 
     <profile>
-      <id>java15-bytecode</id>
+      <id>java19-bytecode</id>
       <activation>
         <property>
           <name>bytecode.version</name>
-          <value>15</value>
+          <value>19</value>
         </property>
       </activation>
       <properties>
-        <maven.compiler.source>13</maven.compiler.source>
-        <maven.compiler.target>13</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
       </properties>
     </profile>
 
     <profile>
-      <id>java16-bytecode</id>
+      <id>java20-bytecode</id>
       <activation>
         <property>
           <name>bytecode.version</name>
-          <value>16</value>
+          <value>20</value>
         </property>
       </activation>
       <properties>
-        <maven.compiler.source>13</maven.compiler.source>
-        <maven.compiler.target>13</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
       </properties>
     </profile>
 
     <profile>
-      <id>java17-bytecode</id>
+      <id>java21-bytecode</id>
       <activation>
         <property>
           <name>bytecode.version</name>
-          <value>17</value>
+          <value>21</value>
         </property>
       </activation>
       <properties>
-        <maven.compiler.source>13</maven.compiler.source>
-        <maven.compiler.target>13</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>java22-bytecode</id>
+      <activation>
+        <property>
+          <name>bytecode.version</name>
+          <value>22</value>
+        </property>
+      </activation>
+      <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>java23-bytecode</id>
+      <activation>
+        <property>
+          <name>bytecode.version</name>
+          <value>23</value>
+        </property>
+      </activation>
+      <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>java24-bytecode</id>
+      <activation>
+        <property>
+          <name>bytecode.version</name>
+          <value>24</value>
+        </property>
+      </activation>
+      <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>java25-bytecode</id>
+      <activation>
+        <property>
+          <name>bytecode.version</name>
+          <value>25</value>
+        </property>
+      </activation>
+      <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>java26-bytecode</id>
+      <activation>
+        <property>
+          <name>bytecode.version</name>
+          <value>26</value>
+        </property>
+      </activation>
+      <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
       </properties>
     </profile>
 
@@ -885,6 +981,7 @@
       <activation>
         <property>
           <name>ecj</name>
+          <value>true</value>
         </property>
       </activation>
       <build>
@@ -894,19 +991,17 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
               <compilerId>eclipse</compilerId>
-              <source>1.8</source>
-              <target>1.8</target>
             </configuration>
             <dependencies>
               <dependency>
-                <groupId>org.eclipse.jdt.core.compiler</groupId>
+                <groupId>org.eclipse.jdt</groupId>
                 <artifactId>ecj</artifactId>
-                <version>4.6.1</version>
+                <version>3.41.0</version>
               </dependency>
               <dependency>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-compiler-eclipse</artifactId>
-                <version>2.8.1</version>
+                <version>2.8.5</version>
               </dependency>
             </dependencies>
           </plugin>
@@ -1009,6 +1104,30 @@
       </properties>
     </profile>
 
+    <profile>
+      <id>jdk23</id>
+      <activation>
+        <property>
+          <name>jdk.version</name>
+          <value>23</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <additionalOptions>
+                <!-- https://bugs.openjdk.org/browse/JDK-8324774 -->
+                <option>--no-fonts</option>
+              </additionalOptions>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <!-- This profile enables generation of JARs with sources and javadocs -->
     <profile>
       <id>sources</id>
@@ -1070,7 +1189,7 @@
                   <rules>
                     <requireReleaseVersion/>
                     <requireProperty>
-                      <property>buildNumber</property>
+                      <property>build.commitId</property>
                       <regex>[0-9a-f]{40}</regex>
                     </requireProperty>
                   </rules>
