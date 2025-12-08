@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2021 Mountainminds GmbH & Co. KG and Contributors
+ * Copyright (c) 2009, 2025 Mountainminds GmbH & Co. KG and Contributors
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
@@ -23,6 +23,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import org.jacoco.core.JaCoCo;
 import org.jacoco.core.internal.ContentTypeDetector;
 import org.jacoco.core.internal.InputStreams;
 import org.jacoco.core.internal.Pack200Streams;
@@ -92,7 +93,7 @@ public class Instrumenter {
 	}
 
 	/**
-	 * Creates a instrumented version of the given class if possible.
+	 * Creates an instrumented version of the given class if possible.
 	 *
 	 * @param buffer
 	 *            definition of the class
@@ -112,7 +113,7 @@ public class Instrumenter {
 	}
 
 	/**
-	 * Creates a instrumented version of the given class if possible. The
+	 * Creates an instrumented version of the given class if possible. The
 	 * provided {@link InputStream} is not closed by this method.
 	 *
 	 * @param input
@@ -136,7 +137,7 @@ public class Instrumenter {
 	}
 
 	/**
-	 * Creates a instrumented version of the given class file. The provided
+	 * Creates an instrumented version of the given class file. The provided
 	 * {@link InputStream} and {@link OutputStream} instances are not closed by
 	 * this method.
 	 *
@@ -158,13 +159,14 @@ public class Instrumenter {
 	private IOException instrumentError(final String name,
 			final Exception cause) {
 		final IOException ex = new IOException(
-				String.format("Error while instrumenting %s.", name));
+				String.format("Error while instrumenting %s with JaCoCo %s/%s.",
+						name, JaCoCo.VERSION, JaCoCo.COMMITID_SHORT));
 		ex.initCause(cause);
 		return ex;
 	}
 
 	/**
-	 * Creates a instrumented version of the given resource depending on its
+	 * Creates an instrumented version of the given resource depending on its
 	 * type. Class files and the content of archive files are instrumented. All
 	 * other files are copied without modification. The provided
 	 * {@link InputStream} and {@link OutputStream} instances are not closed by
@@ -265,6 +267,11 @@ public class Instrumenter {
 		try {
 			return input.getNextEntry();
 		} catch (final IOException e) {
+			throw instrumentError(location, e);
+		} catch (final IllegalArgumentException e) {
+			// might be thrown in JDK versions below 23 - see
+			// https://bugs.openjdk.org/browse/JDK-8321156
+			// https://github.com/openjdk/jdk/commit/20c71ceacdcb791f5b70cda456bdc47bdd9acf6c
 			throw instrumentError(location, e);
 		}
 	}

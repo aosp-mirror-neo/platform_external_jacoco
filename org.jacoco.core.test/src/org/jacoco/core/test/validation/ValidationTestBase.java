@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2021 Mountainminds GmbH & Co. KG and Contributors
+ * Copyright (c) 2009, 2025 Mountainminds GmbH & Co. KG and Contributors
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
@@ -15,23 +15,40 @@ package org.jacoco.core.test.validation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 
 import org.jacoco.core.analysis.Analyzer;
 import org.jacoco.core.analysis.CoverageBuilder;
+import org.jacoco.core.analysis.IBundleCoverage;
 import org.jacoco.core.analysis.ICounter;
 import org.jacoco.core.analysis.ILine;
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.jacoco.core.data.SessionInfo;
 import org.jacoco.core.internal.analysis.CounterImpl;
+import org.jacoco.core.internal.instr.InstrSupport;
 import org.jacoco.core.test.InstrumentingLoader;
 import org.jacoco.core.test.TargetLoader;
 import org.jacoco.core.test.validation.Source.Line;
 import org.jacoco.core.test.validation.targets.Stubs;
+import org.jacoco.report.DirectorySourceFileLocator;
+import org.jacoco.report.FileMultiReportOutput;
+import org.jacoco.report.IReportVisitor;
+import org.jacoco.report.ISourceFileLocator;
+import org.jacoco.report.html.HTMLFormatter;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runners.model.MultipleFailureException;
+import org.objectweb.asm.util.ASMifier;
+import org.objectweb.asm.util.Textifier;
+import org.objectweb.asm.util.TraceClassVisitor;
 
 /**
  * Base class for validation tests. It executes the given class under code
@@ -40,9 +57,6 @@ import org.junit.Test;
 public abstract class ValidationTestBase {
 
 	protected static final boolean isJDKCompiler = Compiler.DETECT.isJDK();
-
-	protected static final JavaVersion JAVA_VERSION = new JavaVersion(
-			System.getProperty("java.version"));
 
 	private static final String[] STATUS_NAME = new String[4];
 
@@ -55,22 +69,36 @@ public abstract class ValidationTestBase {
 
 	private final Class<?> target;
 
+	private final File asmDir;
+
 	private Source source;
+
+	private IBundleCoverage bundle;
 
 	private InstrumentingLoader loader;
 
 	protected ValidationTestBase(final Class<?> target) {
 		this.target = target;
+		this.asmDir = new File("target/asm/" + target.getSimpleName());
 	}
 
 	@Before
 	public void setup() throws Exception {
+		asmDir.mkdirs();
+		// Without cleanup bytecode representation might be in
+		// a weird misleading mixed state after multiple runs
+		// during construction/modification of validation test in IDE:
+		for (File f : asmDir.listFiles()) {
+			f.delete();
+		}
+
 		final ExecutionDataStore store = execute();
 		analyze(store);
 	}
 
 	private ExecutionDataStore execute() throws Exception {
 		loader = new InstrumentingLoader(target);
+		loader.setDefaultAssertionStatus(true);
 		run(loader.loadClass(target.getName()));
 		return loader.collect();
 	}
@@ -80,20 +108,61 @@ public abstract class ValidationTestBase {
 				(Object) new String[0]);
 	}
 
+	protected Collection<String> additionalClassesForAnalysis() {
+		return Collections.emptyList();
+	}
+
 	private void analyze(final ExecutionDataStore store) throws IOException {
 		final CoverageBuilder builder = new CoverageBuilder();
 		final Analyzer analyzer = new Analyzer(store, builder);
 		for (ExecutionData data : store.getContents()) {
-			analyze(analyzer, data);
+			analyze(analyzer, data.getName());
 		}
-		source = Source.load(target, builder.getBundle("Test"));
+		for (String className : additionalClassesForAnalysis()) {
+			analyze(analyzer, className);
+		}
+		final String testClassSimpleName = getClass().getSimpleName();
+		bundle = builder.getBundle(testClassSimpleName);
+		source = Source.load(target, bundle);
 	}
 
-	private void analyze(final Analyzer analyzer, final ExecutionData data)
+	private void analyze(final Analyzer analyzer, final String className)
 			throws IOException {
 		final byte[] bytes = TargetLoader
-				.getClassDataAsBytes(target.getClassLoader(), data.getName());
-		analyzer.analyzeClass(bytes, data.getName());
+				.getClassDataAsBytes(target.getClassLoader(), className);
+		analyzer.analyzeClass(bytes, className);
+		saveBytecodeRepresentations(bytes, className);
+	}
+
+	private void saveBytecodeRepresentations(final byte[] classBytes,
+			final String className) throws IOException {
+		final String fileName = className.replace('/', '.');
+		final PrintWriter textWriter = new PrintWriter(
+				new File(asmDir, fileName + ".txt"));
+		final PrintWriter asmWriter = new PrintWriter(
+				new File(asmDir, fileName + ".java"));
+		InstrSupport.classReaderFor(classBytes)
+				.accept(new TraceClassVisitor(new TraceClassVisitor(null,
+						new Textifier(), textWriter), new ASMifier(),
+						asmWriter), 0);
+		textWriter.close();
+		asmWriter.close();
+	}
+
+	/**
+	 * Generates HTML report.
+	 */
+	@Test
+	public final void generate_html_report() throws IOException {
+		final File destination = new File("target/reports/" + bundle.getName());
+		final IReportVisitor visitor = new HTMLFormatter()
+				.createVisitor(new FileMultiReportOutput(destination));
+		visitor.visitInfo(Collections.<SessionInfo> emptyList(),
+				Collections.<ExecutionData> emptyList());
+		final ISourceFileLocator sourceFileLocator = new DirectorySourceFileLocator(
+				new File("src"), "UTF-8", 4);
+		visitor.visitBundle(bundle, sourceFileLocator);
+		visitor.visitEnd();
 	}
 
 	/**
@@ -105,14 +174,31 @@ public abstract class ValidationTestBase {
 	 * </pre>
 	 */
 	@Test
-	public void execute_assertions_in_comments() throws IOException {
+	public void execute_assertions_in_comments() throws Exception {
+		final ArrayList<Throwable> failedAssertions = new ArrayList<Throwable>();
 		for (Line line : source.getLines()) {
 			String exec = line.getComment();
 			if (exec != null) {
-				StatementParser.parse(exec, new StatementExecutor(this, line),
-						line.toString());
+				try {
+					StatementParser.parse(exec,
+							new StatementExecutor(this, line), line.toString());
+				} catch (final AssertionError e) {
+					failedAssertions.add(e);
+				}
 			}
 		}
+		MultipleFailureException.assertEmpty(failedAssertions);
+	}
+
+	/**
+	 * Source files for validation tests should contain the license header,
+	 * which can not contain executable lines, so this test allows to catch
+	 * cases when the compiler generates wrong line numbers.
+	 */
+	@Test
+	public void first_line_in_coverage_data_should_be_greater_than_one() {
+		assertTrue("First line in coverage data should be greater than one",
+				1 < source.getCoverage().getFirstLine());
 	}
 
 	@Test
@@ -125,7 +211,7 @@ public abstract class ValidationTestBase {
 	}
 
 	@Test
-	public void all_missed_instructions_should_have_line_number() {
+	public final void all_missed_instructions_should_have_line_number() {
 		CounterImpl c = CounterImpl.COUNTER_0_0;
 		for (Line line : source.getLines()) {
 			c = c.increment(line.getCoverage().getInstructionCounter());
@@ -137,7 +223,7 @@ public abstract class ValidationTestBase {
 	}
 
 	@Test
-	public void all_branches_should_have_line_number() {
+	public final void all_branches_should_have_line_number() {
 		CounterImpl c = CounterImpl.COUNTER_0_0;
 		for (Line line : source.getLines()) {
 			c = c.increment(line.getCoverage().getBranchCounter());

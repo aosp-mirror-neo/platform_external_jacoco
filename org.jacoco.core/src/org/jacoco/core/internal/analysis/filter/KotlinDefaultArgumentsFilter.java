@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2021 Mountainminds GmbH & Co. KG and Contributors
+ * Copyright (c) 2009, 2025 Mountainminds GmbH & Co. KG and Contributors
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
@@ -12,8 +12,7 @@
  *******************************************************************************/
 package org.jacoco.core.internal.analysis.filter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -26,8 +25,11 @@ import org.objectweb.asm.tree.VarInsnNode;
 /**
  * Filters branches that Kotlin compiler generates for default arguments.
  *
- * For each default argument Kotlin compiler generates following bytecode to
- * determine if it should be used or not:
+ * For methods and constructors with default arguments Kotlin compiler generates
+ * synthetic method with suffix "$default" or a synthetic constructor with last
+ * argument "kotlin.jvm.internal.DefaultConstructorMarker" respectively. And in
+ * this synthetic method for each default argument Kotlin compiler generates
+ * following bytecode to determine if it should be used or not:
  *
  * <pre>
  * ILOAD maskVar
@@ -38,19 +40,24 @@ import org.objectweb.asm.tree.VarInsnNode;
  * label:
  * </pre>
  *
- * Where <code>maskVar</code> is penultimate argument of synthetic method with
- * suffix "$default" or of synthetic constructor with last argument
- * "kotlin.jvm.internal.DefaultConstructorMarker". And its value can't be zero -
- * invocation with all arguments uses original non synthetic method, thus
- * <code>IFEQ</code> instructions should be ignored.
+ * If original method has <code>X</code> arguments, then in synthetic method
+ * <code>maskVar</code> is one of arguments from <code>X+1</code> to
+ * <code>X+1+(X/32)</code>.
+ *
+ * At least one of such arguments is not zero - invocation without default
+ * arguments uses original non synthetic method.
+ *
+ * This filter marks <code>IFEQ</code> instructions as ignored.
  */
-public final class KotlinDefaultArgumentsFilter implements IFilter {
+final class KotlinDefaultArgumentsFilter implements IFilter {
 
-	static boolean isDefaultArgumentsMethod(final MethodNode methodNode) {
+	private static boolean isDefaultArgumentsMethod(
+			final MethodNode methodNode) {
 		return methodNode.name.endsWith("$default");
 	}
 
-	static boolean isDefaultArgumentsConstructor(final MethodNode methodNode) {
+	private static boolean isDefaultArgumentsConstructor(
+			final MethodNode methodNode) {
 		if (!"<init>".equals(methodNode.name)) {
 			return false;
 		}
@@ -68,10 +75,6 @@ public final class KotlinDefaultArgumentsFilter implements IFilter {
 		if ((methodNode.access & Opcodes.ACC_SYNTHETIC) == 0) {
 			return;
 		}
-		if (!KotlinGeneratedFilter.isKotlinClass(context)) {
-			return;
-		}
-
 		if (isDefaultArgumentsMethod(methodNode)) {
 			new Matcher().match(methodNode, output, false);
 		} else if (isDefaultArgumentsConstructor(methodNode)) {
@@ -105,13 +108,13 @@ public final class KotlinDefaultArgumentsFilter implements IFilter {
 				cursor = skipNonOpcodes(methodNode.instructions.getFirst());
 			}
 
-			final Set<AbstractInsnNode> ignore = new HashSet<AbstractInsnNode>();
+			final ArrayList<AbstractInsnNode> ignore = new ArrayList<AbstractInsnNode>();
 			final int maskVar = maskVar(methodNode.desc, constructor);
 			while (true) {
 				if (cursor.getOpcode() != Opcodes.ILOAD) {
 					break;
 				}
-				if (((VarInsnNode) cursor).var != maskVar) {
+				if (((VarInsnNode) cursor).var < maskVar) {
 					break;
 				}
 				next();
@@ -125,26 +128,36 @@ public final class KotlinDefaultArgumentsFilter implements IFilter {
 				skipNonOpcodes();
 			}
 
-			for (AbstractInsnNode i : ignore) {
+			for (final AbstractInsnNode i : ignore) {
 				output.ignore(i, i);
 			}
 		}
 
 		private static int maskVar(final String desc,
 				final boolean constructor) {
+			final Type[] argumentTypes = Type.getMethodType(desc)
+					.getArgumentTypes();
 			int slot = 0;
 			if (constructor) {
 				// one slot for reference to current object
 				slot++;
 			}
-			final Type[] argumentTypes = Type.getMethodType(desc)
-					.getArgumentTypes();
-			final int penultimateArgument = argumentTypes.length - 2;
-			for (int i = 0; i < penultimateArgument; i++) {
+			final int firstMaskArgument = argumentTypes.length - 1
+					- computeNumberOfMaskArguments(argumentTypes.length);
+			for (int i = 0; i < firstMaskArgument; i++) {
 				slot += argumentTypes[i].getSize();
 			}
 			return slot;
 		}
+	}
+
+	/**
+	 * @param arguments
+	 *            number of arguments of synthetic method
+	 * @return number of arguments holding mask
+	 */
+	static int computeNumberOfMaskArguments(final int arguments) {
+		return (arguments - 2) / 33 + 1;
 	}
 
 }
