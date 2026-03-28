@@ -128,6 +128,8 @@ droidstubs {
     srcs: [
         "org.jacoco.agent.rt/src/org/jacoco/agent/rt/internal/Offline.java",
         "org.jacoco.core/src/org/jacoco/core/data/IExecutionData.java",
+        "org.jacoco.agent.rt/src/org/jacoco/agent/rt/RT.java",
+        "org.jacoco.agent.rt/src/org/jacoco/agent/rt/IAgent.java",
     ],
 
     // Use the compatibility check properties to supply the previously released API to which
